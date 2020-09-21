@@ -1,3 +1,4 @@
 def solution(a):
-    ### YOUR CODE ###
-    return
+    return [list(i) for i in zip(*a)]
+
+

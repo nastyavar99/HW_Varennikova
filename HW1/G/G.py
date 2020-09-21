@@ -1,3 +1,6 @@
 def solution(a, b):
-    ### YOUR CODE ###
-    return
+    b = [i for i in b if i not in a]
+    a.extend(b)
+    return sorted(a)
+
+

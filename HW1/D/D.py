@@ -1,3 +1,9 @@
 def solution(total):
-    ### YOUR CODE HERE ###
-    return
+    time = total % 1440  # минут в сутка
+    hours = time // 60
+    minutes = time % 60
+    return f'{hours} {minutes}'
+
+
+
+
