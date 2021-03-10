@@ -1,6 +1,7 @@
 from gensim.models import Word2Vec
 from scipy.spatial.distance import pdist
 from sklearn.manifold import TSNE
+import matplotlib.pyplot as plt
 
 with open('words_eng.txt', 'r') as file:
     vocab = [[word.rstrip()] for word in file]
@@ -15,4 +16,10 @@ with open('words_eng.txt', 'r') as file:
     tsne = TSNE(n_components=2)
     tsne_model = tsne.fit_transform(model.wv.vectors)
 
-    x = 1
+    plt.figure(figsize=(15, 5))
+    for pare in tsne_model:
+        plt.scatter(*pare, c='blue')
+
+    plt.show()
+
+x = 1
