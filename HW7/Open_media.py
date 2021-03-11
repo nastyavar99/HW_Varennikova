@@ -32,6 +32,8 @@ data = {
     'last_date': today.strftime('%d.%m.%Y')
 }
 
+nonBreakSpace = u'\xa0'
+
 
 def building_corpus():
     date = today.strftime('%d.%m.%Y')
@@ -44,7 +46,9 @@ def building_corpus():
             pattern['badge'] = tag.a.span.text
 
         link_response = req.get(pattern['link'])
-        soup_link = BeautifulSoup(link_response.content.decode('utf-8'), features='html.parser')
+        soup_link = BeautifulSoup(
+            link_response.content.decode('utf-8'), features='html.parser'
+        )
 
         text = ''
         for t in soup_link.find_all('div', {'class': 'single__post'}):
@@ -69,17 +73,38 @@ def building_corpus():
     while True:
         response = req.post('https://openmedia.io/wp-admin/admin-ajax.php', data=data)
         soup = BeautifulSoup(response.text, features='html.parser')
-        for tag in soup.select('div.news__item, p.news__date'):
-            if tag.name == 'p':
-                date = tag.text
-                if datetime.datetime.strptime(date, '%d.%m.%Y').date() < year_ago:
-                    break
-            else:
-                news_data[date].append(_make_record(tag))
+        for tag in soup.select('figure.article'):
+            date = tag.select_one('time.article__data').text
+            if datetime.datetime.strptime(date, '%d.%m.%Y').date() < year_ago:
+                break
+
+            href = tag.select_one('a.article__more').attrs['href']
+            link_2_response = req.get(href)
+            soup_2_link = BeautifulSoup(
+                link_2_response.content.decode('utf-8'), features='html.parser'
+            )
+
+            article_text = ''
+            try:
+                for p in soup_2_link.find('div', {'data-post_id': True}).find_all('p', {'class': False}):
+                    article_text += p.text
+            except:
+                continue
+
+            news_data[date].append({
+                'title': tag.select_one('figcaption.article__dscr').text,
+                'link': href,
+                'text': article_text
+            })
+
         else:
             data['page'] += 1
             continue
         break
+
+    for articles in news_data.values():
+        for article in articles:
+            article['text'] = article['text'].replace(nonBreakSpace, ' ')
 
     with open('openmedia_corpus.json', 'w', encoding='utf-8') as file:
         json.dump(news_data, file, indent=2, ensure_ascii=False)
